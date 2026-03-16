@@ -73,6 +73,7 @@ Terraform provisions the following AWS resources:
 - Amazon RDS PostgreSQL database
 - Application Load Balancer
 - Security groups
+- CloudWatch (for monitoring & Observability)
 
 ### Terraform Backend
 
@@ -82,4 +83,153 @@ Remote state management:
 - **DynamoDB** – State locking
 
 Example:
+
+terraform {
+
+backend "s3" {
+
+bucket = "devops-build-lab-terraform-state"
+
+key = "eks/terraform.tfstate"
+
+region = "us-east-1"
+
+dynamodb_table = "terraform-locks"
+
+}
+
+}
+
+
+---
+
+## CI/CD Pipeline
+
+The CI/CD pipeline is implemented using **GitHub Actions**.
+
+Pipeline steps:
+
+1. Code pushed to GitHub
+2. Build Docker image
+3. Push image to Amazon ECR
+4. Run Terraform apply
+5. Deploy application to Kubernetes
+
+Example workflow:
+
+name: Deploy to EKS
+
+  on:
+  push:
+  branches:
+
+  main
+
+  jobs:
+  deploy:
+  runs-on: ubuntu-latest
+
+  steps:
+
+    name: Checkout
+    uses: actions/checkout@v3
+
+    name: Build Docker Image
+    run: docker build -t log-analyzer .
+
+    name: Push to ECR
+    run: echo "Push image step"
+
+  name: Terraform Apply
+  run: terraform apply -auto-approve
+  
+---
+
+## Kubernetes Deployment
+
+The application is deployed using Kubernetes manifests.
+
+### Deployment
+
+kubectl apply -f k8s/deployment.yaml
+
+
+### Service
+kubectl apply -f k8s/service.yaml
+
+### Ingress
+kubectl apply -f k8s/ingress.yaml
+
+
+---
+
+## Traffic Flow
+
+User → Application Load Balancer → Kubernetes Ingress → Service → Pods → PostgreSQL Database
+
+---
+
+## Monitoring and Observability
+
+Application and cluster monitoring are handled using:
+
+- **Amazon CloudWatch Logs**
+- Container logs from EKS
+- ALB access logs
+
+This allows tracking:
+
+- API request logs
+- Kubernetes pod logs
+- infrastructure metrics
+
+---
+
+## Running Locally
+
+Clone the repository:
+
+git clone https://github.com/ericpaatey/python-log-analyzer-on-kubernetes-aws-esks-.git
+
+cd devops-build-lab-log-analyzer
+
+
+Build the container:
+
+docker build -t log-analyzer .
+
+
+Run locally:
+
+docker run -p 5000:5000 log-analyzer
+
+
+---
+
+## Future Improvements
+
+Possible enhancements:
+
+- Horizontal Pod Autoscaling (HPA)
+- Prometheus + Grafana monitoring
+- Kubernetes Helm charts
+- Blue/Green deployments
+- ArgoCD GitOps deployment model
+
+---
+
+## Key DevOps Concepts Demonstrated
+
+- Infrastructure as Code
+- Kubernetes container orchestration
+- CI/CD automation
+- Immutable infrastructure
+- Cloud-native application deployment
+- Observability and monitoring
+
+---
+
+## Author
+
+I built this project as part of my **DevOps Build Lab**, a series of my hands-on cloud engineering projects focused on real-world infrastructure automation.
 
