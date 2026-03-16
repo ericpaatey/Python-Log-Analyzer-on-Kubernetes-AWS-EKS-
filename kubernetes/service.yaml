@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: log-analyzer-service
+  namespace: default
+  labels:
+    app: log-analyzer
+spec:
+  type: ClusterIP
+  selector:
+    app: log-analyzer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
